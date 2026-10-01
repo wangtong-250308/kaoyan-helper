@@ -1,0 +1,15 @@
+{
+  "name": "kira-exam-helper",
+  "version": "1.0.0",
+  "description": "Kira 的考研备考助手 - 11408 计算机学科专业基础备考管理工具",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "mammoth": "^1.13.0",
+    "multer": "^1.4.5-lts.1",
+    "pdf-parse": "^2.4.5"
+  }
+}
