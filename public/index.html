@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#2d5f8f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="上岸" />
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <title>下一站，上岸！✨</title>
+  <link rel="stylesheet" href="/css/style.css?v=15" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <!-- 登录 / 注册页 -->
+  <div class="login-page" id="loginPage">
+    <div class="login-bg">
+      <span class="blob blob-1"></span>
+      <span class="blob blob-2"></span>
+      <span class="blob blob-3"></span>
+    </div>
+    <div class="login-card">
+      <div class="login-logo"><i class="fa fa-graduation-cap"></i></div>
+      <h1 class="login-title">下一站，上岸！</h1>
+      <p class="login-sub">考研备考助手 · 陪你稳稳上岸</p>
+
+      <!-- 登录表单 -->
+      <form class="login-form" id="loginForm" onsubmit="event.preventDefault();doLogin()">
+        <label class="field-label">用户名</label>
+        <div class="login-input-wrap">
+          <i class="fa fa-user input-icon"></i>
+          <input type="text" id="loginUser" class="login-input" placeholder="请输入用户名" autocomplete="username" />
+        </div>
+        <label class="field-label">密码</label>
+        <div class="login-input-wrap">
+          <i class="fa fa-lock input-icon"></i>
+          <input type="password" id="loginPass" class="login-input" placeholder="请输入密码" autocomplete="current-password" />
+        </div>
+        <div class="login-err" id="loginErr"></div>
+        <button type="submit" class="login-btn">登 录</button>
+        <div class="login-switch">
+          还没有账号？<a href="javascript:showRegister()">立即注册</a>
+        </div>
+      </form>
+
+      <!-- 注册表单 -->
+      <form class="login-form" id="registerForm" style="display:none" onsubmit="event.preventDefault();doRegister()">
+        <label class="field-label">设置用户名</label>
+        <div class="login-input-wrap">
+          <i class="fa fa-user input-icon"></i>
+          <input type="text" id="regUser" class="login-input" placeholder="给自己起个名字" autocomplete="username" />
+        </div>
+        <label class="field-label">设置密码</label>
+        <div class="login-input-wrap">
+          <i class="fa fa-lock input-icon"></i>
+          <input type="password" id="regPass" class="login-input" placeholder="至少 4 位" autocomplete="new-password" />
+        </div>
+        <label class="field-label">确认密码</label>
+        <div class="login-input-wrap">
+          <i class="fa fa-lock input-icon"></i>
+          <input type="password" id="regPass2" class="login-input" placeholder="再输入一次" autocomplete="new-password" />
+        </div>
+        <div class="login-err" id="regErr"></div>
+        <button type="submit" class="login-btn">注 册 并 进 入</button>
+        <div class="login-switch">
+          已有账号？<a href="javascript:showLogin()">去登录</a>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="app" id="app" style="display:none">
+    <!-- 顶部标题栏 -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-icon">📚</span>
+        <span class="brand-title">下一站，上岸！</span>
+      </div>
+      <div class="topbar-right">
+        <span class="top-date" id="topDate"></span>
+        <span class="user-label" id="userLabel"></span>
+        <button class="logout-btn" onclick="doLogout()" title="退出登录"><i class="fa fa-sign-out"></i></button>
+      </div>
+    </header>
+
+    <!-- 页面容器 -->
+    <main class="content">
+      <!-- 1. 首页 / 仪表盘 -->
+      <section class="page active" id="page-home">
+        <!-- 目标学校卡片 -->
+        <div class="school-card" id="schoolCard">
+          <div class="school-img-wrap" onclick="document.getElementById('schoolPhotoInput').click()">
+            <img id="schoolPhoto" class="school-img" style="display:none" />
+            <div class="school-img-placeholder" id="schoolImgPlaceholder">
+              <i class="fa fa-university"></i>
+              <span>点击上传目标院校</span>
+            </div>
+            <input type="file" id="schoolPhotoInput" accept="image/*" style="display:none" onchange="uploadSchoolPhoto(this)" />
+          </div>
+          <div class="school-info">
+            <div class="school-name" id="schoolName" onclick="editSchoolName()">点击设置目标院校</div>
+            <div class="school-score">
+              <span class="score-label">目标分数</span>
+              <span class="score-num" id="schoolTargetScore" onclick="editSchoolScore()">--</span>
+            </div>
+            <div class="school-gap" id="schoolGap">设置目标分数后查看差距</div>
+          </div>
+        </div>
+
+        <div class="countdown-card">
+          <div class="cd-label">距离 28 考研还有</div>
+          <div class="cd-days" id="cdDays">--</div>
+          <div class="cd-sub" id="cdSub">第 -- 天 · 今天也要稳稳前进呀 ✨</div>
+        </div>
+
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#D6EAF8"><i class="fa fa-tasks"></i></div>
+            <div class="stat-num" id="statTotal">0</div>
+            <div class="stat-label">今日任务</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#D5F5E3"><i class="fa fa-check-circle"></i></div>
+            <div class="stat-num" id="statDone">0</div>
+            <div class="stat-label">已完成</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#FCF3CF"><i class="fa fa-clock-o"></i></div>
+            <div class="stat-num" id="statMin">0</div>
+            <div class="stat-label">学习分钟</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon" style="background:#FADBD8"><i class="fa fa-fire"></i></div>
+            <div class="stat-num" id="statStreak">0</div>
+            <div class="stat-label">连续打卡</div>
+          </div>
+        </div>
+
+        <div class="today-tasks-card">
+          <div class="card-title"><i class="fa fa-calendar-check-o"></i> 今日任务</div>
+          <div id="todayTaskList" class="today-task-list"></div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="quick-btn" onclick="go('plan')">
+            <i class="fa fa-pencil-square-o"></i><span>明日计划</span>
+          </button>
+          <button class="quick-btn" onclick="go('checkin')">
+            <i class="fa fa-camera"></i><span>今日打卡</span>
+          </button>
+          <button class="quick-btn" onclick="go('schedule')">
+            <i class="fa fa-calendar"></i><span>课表设置</span>
+          </button>
+          <button class="quick-btn" onclick="go('stats')">
+            <i class="fa fa-line-chart"></i><span>数据统计</span>
+          </button>
+        </div>
+
+        <div class="eval-card" id="todayEval">
+          <div class="card-title"><i class="fa fa-commenting-o"></i> 今日评价</div>
+          <div class="eval-text" id="evalText">还没有今日评价，完成打卡后会生成哦~</div>
+        </div>
+
+        <!-- 模考分数卡片 -->
+        <div class="card">
+          <div class="card-title">
+            <i class="fa fa-trophy"></i> 模考分数记录
+            <button class="btn-link sm" onclick="document.getElementById('mockExamForm').style.display='flex'">+ 新增</button>
+          </div>
+          <div class="mock-exam-form" id="mockExamForm" style="display:none">
+            <input type="date" id="mockDate" class="input-sm" />
+            <input type="number" id="mockScore" class="input-sm" placeholder="分数" />
+            <input type="text" id="mockName" class="input-sm" placeholder="模考名称（选填）" />
+            <button class="btn-primary sm" onclick="addMockExam()">保存</button>
+          </div>
+          <canvas id="chartMock" height="120"></canvas>
+          <div id="mockList" class="mock-list"></div>
+        </div>
+
+        <!-- 每日激励语 -->
+        <div class="quote-card">
+          <div class="card-title"><i class="fa fa-quote-left"></i> 今日激励</div>
+          <div class="quote-text" id="quoteText" onclick="editQuote()">点击写下今天想对自己说的话...</div>
+          <div class="quote-edit" id="quoteEdit" style="display:none">
+            <textarea id="quoteInput" class="plan-input" rows="2"></textarea>
+            <button class="btn-primary sm" onclick="saveQuote()">保存</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- 2. 明日计划 -->
+      <section class="page" id="page-plan">
+        <div class="page-header">
+          <h2><i class="fa fa-pencil-square-o"></i> 明日计划生成</h2>
+        </div>
+        <div class="card">
+          <label class="field-label">明天打算学什么呢？（用逗号或顿号分隔）</label>
+          <textarea id="planInput" class="plan-input" placeholder="例如：复习 408 计网，做数学题，背英语单词，整理错题，听数据结构课"></textarea>
+          <div class="plan-row">
+            <label class="field-label small">选择明日日期</label>
+            <input type="date" id="planDate" class="input-sm" />
+            <button class="btn-link" onclick="showFreeSlots()">查看可学时段</button>
+          </div>
+          <button class="btn-primary" onclick="generatePlan()">
+            <i class="fa fa-magic"></i> 生成学习计划
+          </button>
+        </div>
+
+        <div class="card" id="freeSlotsCard" style="display:none">
+          <div class="card-title"><i class="fa fa-clock-o"></i> 可学时段推荐</div>
+          <div id="freeSlotsList"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="fa fa-list-ol"></i> 生成的任务列表</div>
+          <div id="planResult" class="plan-result">点击上方按钮生成计划~</div>
+        </div>
+      </section>
+
+      <!-- 3. 今日打卡 -->
+      <section class="page" id="page-checkin">
+        <div class="page-header">
+          <h2><i class="fa fa-camera"></i> 今日任务打卡</h2>
+        </div>
+        <div class="card">
+          <div class="plan-row">
+            <label class="field-label small">选择日期</label>
+            <input type="date" id="checkinDate" class="input-sm" />
+            <button class="btn-link" onclick="loadCheckinTasks()">查看</button>
+          </div>
+        </div>
+        <div id="checkinList"></div>
+      </section>
+
+      <!-- 4. 课表设置 -->
+      <section class="page" id="page-schedule">
+        <div class="page-header">
+          <h2><i class="fa fa-calendar"></i> 课表与固定事件</h2>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="fa fa-plus-circle"></i> 添加事件</div>
+          <div class="form-grid">
+            <div>
+              <label class="field-label small">星期</label>
+              <select id="evDay" class="input-sm">
+                <option value="1">周一</option><option value="2">周二</option>
+                <option value="3">周三</option><option value="4">周四</option>
+                <option value="5">周五</option><option value="6">周六</option>
+                <option value="0">周日</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label small">开始</label>
+              <input type="time" id="evStart" class="input-sm" value="08:00" />
+            </div>
+            <div>
+              <label class="field-label small">结束</label>
+              <input type="time" id="evEnd" class="input-sm" value="09:40" />
+            </div>
+            <div>
+              <label class="field-label small">类型</label>
+              <select id="evType" class="input-sm">
+                <option>课程</option><option>实验</option><option>会议</option>
+                <option>私事</option><option>其他</option>
+              </select>
+            </div>
+            <div class="full">
+              <label class="field-label small">事件名称</label>
+              <input type="text" id="evName" class="input-sm" placeholder="例如：数据结构课 / 班会 / 实习" />
+            </div>
+            <div class="full">
+              <label class="field-label small">事件照片（选填，可拍照）</label>
+              <div class="upload-area sm" onclick="document.getElementById('evPhoto').click()">
+                <i class="fa fa-camera"></i>
+                <span id="evPhotoHint">点击拍照或选择图片</span>
+                <input type="file" id="evPhoto" accept="image/*" capture="environment" style="display:none" onchange="previewEventPhoto(this)" />
+              </div>
+              <img id="evPhotoPreview" class="photo-preview" style="display:none" />
+            </div>
+          </div>
+          <button class="btn-primary" onclick="addEvent()"><i class="fa fa-plus"></i> 添加</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="fa fa-calendar-o"></i> 我的课表</div>
+          <div id="eventList"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="fa fa-cog"></i> 可用学习时间段</div>
+          <div id="slotsList"></div>
+          <div class="plan-row">
+            <input type="time" id="slotStart" class="input-sm" value="08:00" />
+            <span>—</span>
+            <input type="time" id="slotEnd" class="input-sm" value="12:00" />
+            <button class="btn-primary sm" onclick="addSlot()">添加</button>
+          </div>
+          <div class="plan-row">
+            <label class="field-label small">考研日期</label>
+            <input type="date" id="examDate" class="input-sm" />
+            <button class="btn-primary sm" onclick="saveExamDate()">保存</button>
+          </div>
+          <div class="plan-row" style="margin-top:12px">
+            <label class="field-label small" style="flex-shrink:0">DeepSeek Key</label>
+            <input type="password" id="deepseekKey" class="input-sm" placeholder="sk-..." />
+            <button class="btn-primary sm" onclick="saveDeepseekKey()">保存</button>
+          </div>
+          <div style="font-size:11px;color:var(--text-light);margin-top:6px">
+            <i class="fa fa-info-circle"></i> 填写后可在统计页用 AI 分析备考情况。Key 仅保存在本地数据库，不上传其他服务器。
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. 数据统计 -->
+      <section class="page" id="page-stats">
+        <div class="page-header">
+          <h2><i class="fa fa-line-chart"></i> 数据统计</h2>
+        </div>
+
+        <!-- 时段切换 -->
+        <div class="period-tabs">
+          <button class="period-tab active" data-period="week" onclick="switchPeriod('week')">本周</button>
+          <button class="period-tab" data-period="month" onclick="switchPeriod('month')">本月</button>
+          <button class="period-tab" data-period="year" onclick="switchPeriod('year')">本年</button>
+        </div>
+
+        <!-- 概览卡片 -->
+        <div class="summary-grid">
+          <div class="summary-card">
+            <div class="sum-label">完成率</div>
+            <div class="sum-value" id="sumRate">0%</div>
+          </div>
+          <div class="summary-card">
+            <div class="sum-label">完成/总数</div>
+            <div class="sum-value" id="sumDone">0/0</div>
+          </div>
+          <div class="summary-card">
+            <div class="sum-label">学习时长</div>
+            <div class="sum-value" id="sumMin">0分</div>
+          </div>
+          <div class="summary-card">
+            <div class="sum-label">连续打卡</div>
+            <div class="sum-value" id="sumStreak">0天</div>
+          </div>
+        </div>
+
+        <!-- 折线图：一排两个 -->
+        <div class="chart-row">
+          <div class="card chart-card">
+            <div class="card-title"><i class="fa fa-trophy"></i> <span id="periodLabel">本周</span>完成率趋势</div>
+            <canvas id="chartRate" height="200"></canvas>
+          </div>
+          <div class="card chart-card">
+            <div class="card-title"><i class="fa fa-clock-o"></i> <span id="periodLabel2">本周</span>学习时长趋势</div>
+            <canvas id="chartMin" height="200"></canvas>
+          </div>
+        </div>
+
+        <!-- 饼图：一排三个 -->
+        <div class="chart-row">
+          <div class="card chart-card">
+            <div class="card-title"><i class="fa fa-pie-chart"></i> 科目分布占比</div>
+            <canvas id="chartSubjectPie" height="220"></canvas>
+          </div>
+          <div class="card chart-card">
+            <div class="card-title"><i class="fa fa-check-circle-o"></i> 任务完成状态</div>
+            <canvas id="chartStatusPie" height="220"></canvas>
+          </div>
+          <div class="card chart-card">
+            <div class="card-title"><i class="fa fa-graduation-cap"></i> 每日完成率分布</div>
+            <canvas id="chartRateDistPie" height="220"></canvas>
+          </div>
+        </div>
+
+        <!-- AI 评价 -->
+        <div class="card ai-card">
+          <div class="card-title"><i class="fa fa-robot"></i> AI 备考评价</div>
+          <p class="ai-desc">接入 DeepSeek，让 AI 帮你分析本周完成情况并给出建议</p>
+          <button class="btn-primary" id="aiEvalBtn" onclick="runAiEvaluate()">
+            <i class="fa fa-magic"></i> 生成 AI 评价
+          </button>
+          <div id="aiResult" class="ai-result"></div>
+        </div>
+
+        <div class="card">
+          <div class="card-title"><i class="fa fa-history"></i> 每日评价历史</div>
+          <div id="evalHistory"></div>
+        </div>
+      </section>
+
+      <!-- 6. 院校智能分析 -->
+      <section class="page" id="page-school">
+        <div class="page-header">
+          <h2><i class="fa fa-graduation-cap"></i> 院校智能分析</h2>
+        </div>
+        <div class="card">
+          <div class="card-title">上传院校文件，AI 一键分析</div>
+          <p class="ai-desc">支持 PDF、Word、TXT、图片格式。上传招生简章、专业目录、复试方案等，AI 自动提取初试科目、分数建议、报录比等关键信息。</p>
+
+          <div class="upload-area" id="schoolUploadArea" onclick="document.getElementById('schoolFile').click()">
+            <i class="fa fa-cloud-upload"></i>
+            <span>点击或拖拽文件到此处</span>
+            <small>PDF / Word / TXT / 图片（最大 20MB）</small>
+          </div>
+          <input type="file" id="schoolFile" accept=".pdf,.docx,.doc,.txt,.jpg,.jpeg,.png,.gif,.bmp,.webp" style="display:none" onchange="analyzeSchoolFile(this)" />
+          <div id="schoolFileName" class="school-file-name"></div>
+          <div id="schoolAnalyzeLoading" style="display:none;text-align:center;padding:30px;color:var(--text-light);">
+            <i class="fa fa-spinner fa-spin" style="font-size:28px;color:var(--primary);"></i>
+            <div style="margin-top:12px;">AI 正在分析文件，请稍候…</div>
+          </div>
+        </div>
+
+        <div id="schoolResult" style="display:none;">
+          <div class="card">
+            <div class="card-title">📋 分析结果</div>
+            <div id="schoolResultContent"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- 7. 星海 -->
+      <section class="page" id="page-star">
+        <div class="star-wrap">
+          <canvas id="starCanvas"></canvas>
+          <div class="star-hint" id="starHint">
+            <i class="fa fa-hand-pointer-o"></i> 拖拽旋转星海 · 点击星星查看任务
+          </div>
+          <div class="star-count" id="starCount">已点亮 0 颗星 ✨</div>
+        </div>
+
+        <!-- 星星详情弹窗 -->
+        <div class="star-detail" id="starDetail" style="display:none">
+          <div class="star-detail-card" id="starDetailCard">
+            <button class="star-detail-close" onclick="closeStarDetail()"><i class="fa fa-times"></i></button>
+            <div class="sd-title" id="sdTitle">任务名称</div>
+            <div class="sd-subject" id="sdSubject">科目</div>
+            <div class="sd-date" id="sdDate">日期</div>
+            <div class="sd-note" id="sdNote">备注</div>
+            <img id="sdPhoto" class="sd-photo" style="display:none" />
+            <video id="sdVideo" class="sd-photo" controls style="display:none"></video>
+            <div class="sd-minutes" id="sdMinutes">学习时长</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 底部导航 -->
+    <nav class="tabbar">
+      <button class="tab active" data-page="home" onclick="go('home')">
+        <i class="fa fa-home"></i><span>首页</span>
+      </button>
+      <button class="tab" data-page="plan" onclick="go('plan')">
+        <i class="fa fa-pencil"></i><span>计划</span>
+      </button>
+      <button class="tab" data-page="checkin" onclick="go('checkin')">
+        <i class="fa fa-camera"></i><span>打卡</span>
+      </button>
+      <button class="tab" data-page="schedule" onclick="go('schedule')">
+        <i class="fa fa-calendar"></i><span>课表</span>
+      </button>
+      <button class="tab" data-page="stats" onclick="go('stats')">
+        <i class="fa fa-bar-chart"></i><span>统计</span>
+      </button>
+      <button class="tab" data-page="school" onclick="go('school')">
+        <i class="fa fa-graduation-cap"></i><span>院校</span>
+      </button>
+      <button class="tab" data-page="star" onclick="go('star')">
+        <i class="fa fa-skyatlas"></i><span>星海</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- 打卡弹窗 -->
+  <div class="modal" id="checkinModal">
+    <div class="modal-box">
+      <div class="modal-title">任务打卡</div>
+      <div id="modalTaskName" class="modal-task"></div>
+      <div class="timer-box" id="timerBox" style="display:none">
+        <i class="fa fa-hourglass-half"></i>
+        <span class="timer-label">学习中</span>
+        <span class="timer-display" id="timerDisplay">00:00:00</span>
+      </div>
+      <label class="field-label small">听课老师（选填）</label>
+      <input type="text" id="modalTeacher" class="input-sm" placeholder="例如：张宇 / 王道" />
+      <label class="field-label small">完成备注</label>
+      <textarea id="modalNote" class="plan-input" rows="2" placeholder="今天学了什么，有什么收获~"></textarea>
+      <label class="field-label small">笔记照片 <span class="req">*</span></label>
+      <div class="upload-area" onclick="document.getElementById('modalPhoto').click()">
+        <i class="fa fa-camera"></i>
+        <span id="uploadHint">点击拍照或选择照片</span>
+        <input type="file" id="modalPhoto" accept="image/*" capture="environment" style="display:none" onchange="previewPhoto(this)" />
+      </div>
+      <img id="photoPreview" class="photo-preview" style="display:none" />
+      <label class="field-label small">备考记录视频（选填）</label>
+      <div class="upload-area" onclick="document.getElementById('modalVideo').click()">
+        <i class="fa fa-video-camera"></i>
+        <span id="videoHint">点击录制或选择视频</span>
+        <input type="file" id="modalVideo" accept="video/*" capture="environment" style="display:none" onchange="previewVideo(this)" />
+      </div>
+      <video id="videoPreview" class="photo-preview" controls style="display:none;max-height:200px"></video>
+      <div class="modal-actions">
+        <button class="btn-ghost" onclick="closeModal()">取消</button>
+        <button class="btn-primary" onclick="submitCheckin()"><i class="fa fa-check"></i> 完成打卡</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI 悬浮聊天助手 -->
+  <div class="ai-chat" id="aiChat">
+    <!-- 悬浮按钮 -->
+    <button class="ai-chat-fab" id="aiChatFab" onclick="toggleAiChat()">
+      <i class="fa fa-comments"></i>
+    </button>
+
+    <!-- 聊天面板 -->
+    <div class="ai-chat-panel" id="aiChatPanel">
+      <div class="ai-chat-header">
+        <div class="ai-chat-avatar-sm"><i class="fa fa-robot"></i></div>
+        <div class="ai-chat-title">
+          <div class="ai-chat-name">小岸 · AI 备考助手</div>
+          <div class="ai-chat-status"><span class="ai-dot"></span> 在线 · 随时为你解答</div>
+        </div>
+        <button class="ai-chat-close" onclick="toggleAiChat()"><i class="fa fa-times"></i></button>
+      </div>
+
+      <!-- 推荐问题 -->
+      <div class="ai-chat-suggest" id="aiChatSuggest">
+        <button onclick="askAi('考研英语怎么复习？')">考研英语怎么复习？</button>
+        <button onclick="askAi('数学进度慢怎么办？')">数学进度慢怎么办？</button>
+        <button onclick="askAi('每天学多久合适？')">每天学多久合适？</button>
+        <button onclick="askAi('心态崩了怎么调整？')">心态崩了怎么调整？</button>
+      </div>
+
+      <!-- 消息区 -->
+      <div class="ai-chat-messages" id="aiChatMessages">
+        <div class="ai-msg ai-msg-bot">
+          <div class="ai-msg-avatar"><i class="fa fa-robot"></i></div>
+          <div class="ai-msg-bubble">
+            <div class="ai-msg-text">嗨！我是小岸 🎓，你的考研专属智能助手～</div>
+            <div class="ai-msg-text">我可以帮你：</div>
+            <div class="ai-msg-capability">📚 解答考研各科复习方法</div>
+            <div class="ai-msg-capability">📅 制定学习计划和时间安排</div>
+            <div class="ai-msg-capability">💪 提供心态调整和鼓励建议</div>
+            <div class="ai-msg-capability">❓ 回答各种备考疑问</div>
+            <div class="ai-msg-text">有什么想了解的？快问我吧！</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 输入区 -->
+      <div class="ai-chat-input-area">
+        <input type="text" id="aiChatInput" class="ai-chat-input" placeholder="输入你的问题…（Enter 发送）" onkeydown="if(event.key==='Enter')sendAiMsg()" />
+        <button class="ai-chat-send" onclick="sendAiMsg()"><i class="fa fa-paper-plane"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js?v=21"></script>
+</body>
+</html>
